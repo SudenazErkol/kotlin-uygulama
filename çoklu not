@@ -1,0 +1,47 @@
+package com.example.sifrelinot
+
+import android.content.Context
+import android.os.Bundle
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+
+class NotesActivity : AppCompatActivity() {
+
+    private lateinit var listView: ListView
+    private lateinit var adapter: ArrayAdapter<String>
+    private val notes = mutableListOf<String>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_notes)
+
+        val edtNote = findViewById<EditText>(R.id.edtNote)
+        val btnAdd = findViewById<Button>(R.id.btnAdd)
+        listView = findViewById(R.id.listView)
+
+        val prefs = getSharedPreferences("notes", Context.MODE_PRIVATE)
+        val savedNotes = prefs.getStringSet("list", setOf())
+        notes.addAll(savedNotes!!)
+
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, notes)
+        listView.adapter = adapter
+
+        btnAdd.setOnClickListener {
+            val note = edtNote.text.toString()
+            if (note.isNotEmpty()) {
+                notes.add(note)
+                adapter.notifyDataSetChanged()
+                prefs.edit().putStringSet("list", notes.toSet()).apply()
+                edtNote.text.clear()
+            }
+        }
+
+        // Nota UZUN BAS → SİL
+        listView.setOnItemLongClickListener { _, _, position, _ ->
+            notes.removeAt(position)
+            adapter.notifyDataSetChanged()
+            prefs.edit().putStringSet("list", notes.toSet()).apply()
+            true
+        }
+    }
+}
